@@ -59,13 +59,14 @@ Completed CI gates:
 
 Remaining local/runtime gates before a public release:
 
-5. ⬜ Windows packaged-app install/start smoke test
-6. ⬜ Chrome extension load-unpacked smoke test
-7. ⬜ extension ↔ desktop bridge pairing
-8. ⬜ Core MCP initialize + tools/list + tool call
-9. ⬜ Desktop MCP initialize + browser/desktop smoke
-10. ⬜ Plugins MCP initialize + external-plugin discovery smoke
-11. ⬜ session / worker / Compact & Resume smoke test
+5. ✅ Windows x64 package generation + packaged-runtime smoke (Actions run `36473828817`, artifact `jacob-agent-workspace-windows-x64-smoke`)
+6. ⬜ Windows installer install/start smoke on a real desktop
+7. ⬜ Chrome extension load-unpacked smoke test
+8. ⬜ extension ↔ desktop bridge pairing
+9. ⬜ Core MCP initialize + tools/list + tool call
+10. ⬜ Desktop MCP initialize + browser/desktop smoke
+11. ⬜ Plugins MCP initialize + external-plugin discovery smoke
+12. ⬜ session / worker / Compact & Resume smoke test
 
 The derivative bootstrap is now source/build CI-clean. Do not publish a public Jacob Agent Workspace release until the remaining local/runtime gates are exercised.
 
@@ -85,3 +86,17 @@ The follow-up fixes align:
 - Jacob Agent Workspace 2.2.0 changelog and release notes
 
 This branch exists to rerun the executable gate against the corrected head.
+
+
+## Windows package artifact
+
+Phase 2B one-shot package smoke completed successfully in GitHub Actions run `36473828817`.
+
+Artifact:
+- name: `jacob-agent-workspace-windows-x64-smoke`
+- size: `170324813` bytes
+- SHA-256 artifact digest: `a6e5a8af8a65f7ee11da3cd4c7b1a45b42b981143061bc1b58d0d61693f73247`
+- retention: through 2026-10-12
+- source head: `daff9301456e877a791a3370b176affe75ddde22`
+
+The Windows x64 packaging job passed `npm run dist:x64`, `smoke-packaged-runtime.mjs`, installer existence/size validation, and artifact upload.
