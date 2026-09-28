@@ -37,24 +37,37 @@ Existing `CLF_*`, `COS_*`, `cos.*`, continuation markers, persistent storage key
 
 ## Phase 2 — executable verification
 
-Status: **pending runtime execution**
+Status: **CI verification passed on Windows x64, macOS arm64, and Linux x64**
 
-Required gates:
+GitHub Actions run `36472439512` passed on all three supported CI targets. Each target completed:
 
-1. `npm ci`
-2. `npm run verify:ci`
-3. `npm run build`
-4. Windows packaged-app smoke test
-5. Chrome extension load-unpacked smoke test
-6. extension ↔ desktop bridge pairing
-7. Core MCP initialize + tools/list + tool call
-8. Desktop MCP initialize + browser/desktop smoke
-9. Plugins MCP initialize + external-plugin discovery smoke
-10. session / worker / Compact & Resume smoke test
+- `npm ci`
+- `npm run verify:ci`
+- `npm run build`
+- Python 3.12 setup
+- `uv==0.12.5` plugin runtime setup
+- live plugin proxy/Python/catalog integration tests
 
-The repository already contains a pull-request CI workflow that runs `npm run verify:ci` on Windows x64, macOS arm64, and Linux x64. At the time this file was written, the fork had produced no workflow run for PR #1, so executable verification remains a merge gate.
+This establishes cross-platform source/build/plugin verification for the derivative bootstrap.
 
-Do not publish a Jacob Agent Workspace release until the executable Phase 2 gates are green.
+Completed CI gates:
+
+1. ✅ `npm ci`
+2. ✅ `npm run verify:ci`
+3. ✅ `npm run build`
+4. ✅ live external-plugin integration tests on Windows/macOS/Linux
+
+Remaining local/runtime gates before a public release:
+
+5. ⬜ Windows packaged-app install/start smoke test
+6. ⬜ Chrome extension load-unpacked smoke test
+7. ⬜ extension ↔ desktop bridge pairing
+8. ⬜ Core MCP initialize + tools/list + tool call
+9. ⬜ Desktop MCP initialize + browser/desktop smoke
+10. ⬜ Plugins MCP initialize + external-plugin discovery smoke
+11. ⬜ session / worker / Compact & Resume smoke test
+
+The derivative bootstrap is now source/build CI-clean. Do not publish a public Jacob Agent Workspace release until the remaining local/runtime gates are exercised.
 
 <!-- CI trigger marker: Actions enabled for derivative verification -->
 
