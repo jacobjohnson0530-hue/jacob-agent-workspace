@@ -1,0 +1,59 @@
+name: Windows package smoke
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/package-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: package-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package-windows-x64:
+    name: Package Windows x64
+    runs-on: windows-2025
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22
+          architecture: x64
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Package Windows x64
+        run: npm run dist:x64
+
+      - name: Smoke packaged runtime
+        run: node scripts/smoke-packaged-runtime.mjs --platform win32 --arch x64
+
+      - name: Verify installer exists
+        shell: pwsh
+        run: |
+          $installer = "release/Jacob-Agent-Workspace-Setup-x64.exe"
+          if (-not (Test-Path $installer)) {
+            throw "Missing installer: $installer"
+          }
+          $item = Get-Item $installer
+          if ($item.Length -lt 1MB) {
+            throw "Installer is unexpectedly small: $($item.Length) bytes"
+          }
+          Write-Host "Installer OK: $($item.FullName) ($($item.Length) bytes)"
+
+      - name: Upload installer
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: jacob-agent-workspace-windows-x64-smoke
+          path: release/Jacob-Agent-Workspace-Setup-x64.exe
+          if-no-files-found: error
+          retention-days: 14
