@@ -136,10 +136,10 @@ describe('the file Get update opens for an installation that cannot update itsel
     expect(manualDownloadName('darwin', 'ia32', undefined, true)).toBeNull();
   });
   it('links that file for the announced version, and the release page otherwise', () => {
-    expect(manualDownloadUrl('2.1.17', 'Jacob-Agent-Workspace-macOS-arm64.dmg'))
-      .toBe('https://github.com/jacobjohnson0530-hue/jacob-agent-workspace/releases/download/v2.1.17/Jacob-Agent-Workspace-macOS-arm64.dmg');
+    expect(manualDownloadUrl('2.2.0', 'Jacob-Agent-Workspace-macOS-arm64.dmg'))
+      .toBe('https://github.com/jacobjohnson0530-hue/jacob-agent-workspace/releases/download/v2.2.0/Jacob-Agent-Workspace-macOS-arm64.dmg');
     expect(manualDownloadUrl(null, 'Jacob-Agent-Workspace-macOS-arm64.dmg')).toBe('https://github.com/jacobjohnson0530-hue/jacob-agent-workspace/releases/latest');
-    expect(manualDownloadUrl('2.1.17', null)).toBe('https://github.com/jacobjohnson0530-hue/jacob-agent-workspace/releases/latest');
+    expect(manualDownloadUrl('2.2.0', null)).toBe('https://github.com/jacobjohnson0530-hue/jacob-agent-workspace/releases/latest');
     expect(manualDownloadUrl('../evil', 'x.dmg')).toBe('https://github.com/jacobjohnson0530-hue/jacob-agent-workspace/releases/latest');
   });
 });
