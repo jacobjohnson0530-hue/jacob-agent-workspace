@@ -1,3 +1,10 @@
+> [!IMPORTANT]
+> **Jacob Agent Workspace derivative bootstrap**
+>
+> This repository is a personal derivative of [Chat On Steroids](https://github.com/totec448-spec/chat-on-steroids), retained under the upstream MIT License. The fork is currently separating product identity while preserving upstream behavior. See [UPSTREAM.md](UPSTREAM.md) for attribution and synchronization policy.
+>
+> Until the derivative release pipeline is completed, upstream screenshots, historical documentation, and release references below should be treated as upstream material rather than Jacob Agent Workspace releases.
+
 <p align="center"><img src="docs/images/readme-hero.svg?v=2" width="960" alt="Turn ChatGPT into Codex-style local coding. Chat On Steroids: Your files. Your terminal. Your ChatGPT plan." /></p>
 
 <p align="center">
