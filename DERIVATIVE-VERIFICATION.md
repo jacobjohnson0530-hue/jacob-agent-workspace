@@ -55,3 +55,5 @@ Required gates:
 The repository already contains a pull-request CI workflow that runs `npm run verify:ci` on Windows x64, macOS arm64, and Linux x64. At the time this file was written, the fork had produced no workflow run for PR #1, so executable verification remains a merge gate.
 
 Do not publish a Jacob Agent Workspace release until the executable Phase 2 gates are green.
+
+<!-- CI trigger marker: Actions enabled for derivative verification -->
