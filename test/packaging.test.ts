@@ -369,7 +369,7 @@ describe('cross-platform packaging targets', () => {
     expect(builder.deb.depends).toContain('libatspi2.0-0 | libatspi2.0-0t64');
     expect(builder.linux.syncDesktopName).toBe(true);
     expect(builder.linux.maintainer).toMatch(/^Jacob Agent Workspace <[^>]+@users\.noreply\.github\.com>$/);
-    expect(pkg.desktopName).toBe('com.chatonsteroids.app.desktop');
+    expect(pkg.desktopName).toBe('com.jacobagentworkspace.app.desktop');
     expect(pkg.homepage).toBe('https://github.com/jacobjohnson0530-hue/jacob-agent-workspace');
     expect(iconScript).toContain("build', 'icon.png'), pngFor(1024)");
 
@@ -440,7 +440,7 @@ describe('cross-platform packaging targets', () => {
     const nativePrep = readFileSync(path.join(root, 'scripts', 'prepare-packaging-native.mjs'), 'utf8');
     expect(nativePrep).toContain("await chmod(path.join(payloadRoot, 'node-pty', 'prebuilds', prebuildDir, 'spawn-helper'), 0o755)");
     for (const marker of [
-      "CFBundleIdentifier: 'com.chatonsteroids.app'",
+      "CFBundleIdentifier: 'com.jacobagentworkspace.app'",
       "CFBundleExecutable: 'Jacob Agent Workspace'",
       "CFBundleName: 'Jacob Agent Workspace'",
       "CFBundleDisplayName: 'Jacob Agent Workspace'",
