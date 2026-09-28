@@ -1,6 +1,6 @@
 {
   "name": "jacob-agent-workspace",
-  "version": "2.1.17",
+  "version": "2.2.0",
   "description": "Personal local AI development workspace for ChatGPT over MCP, with desktop control and approved-folder capability limits.",
   "license": "MIT",
   "author": "Jacob Agent Workspace contributors",
