@@ -57,3 +57,18 @@ The repository already contains a pull-request CI workflow that runs `npm run ve
 Do not publish a Jacob Agent Workspace release until the executable Phase 2 gates are green.
 
 <!-- CI trigger marker: Actions enabled for derivative verification -->
+
+
+## First executable CI findings
+
+The first three-platform run validated dependency installation on Windows, macOS, and Linux, then failed in `npm run verify:ci` on a common set of derivative-rebranding assertions rather than OS-specific runtime behavior.
+
+The follow-up fixes align:
+- model-facing instruction expectations
+- Goal transcript branding
+- plugin UI assertions
+- pet and skill error assertions
+- renderer source/i18n keys
+- Jacob Agent Workspace 2.2.0 changelog and release notes
+
+This branch exists to rerun the executable gate against the corrected head.
