@@ -638,7 +638,7 @@ export function registerIpc(getWindow: () => BrowserWindow | null, quitToInstall
     return setPetOverlayVisible(visible);
   });
   handle('pets:import', async () => {
-    const options: Electron.OpenDialogOptions = { title: 'Import CoS Pet folder', properties: ['openDirectory'] };
+    const options: Electron.OpenDialogOptions = { title: 'Import Jacob Agent Workspace Pet folder', properties: ['openDirectory'] };
     const owner = getWindow();
     const selected = owner && !owner.isDestroyed()
       ? await dialog.showOpenDialog(owner, options)

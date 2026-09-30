@@ -64,7 +64,7 @@ afterEach(() => {
 });
 
 describe('simple compatible pet library', () => {
-  it('imports only a validated Tur Tur-compatible CoS Pet package into the managed library', () => {
+  it('imports only a validated Tur Tur-compatible Jacob Agent Workspace Pet package into the managed library', () => {
     importPet(packagePet('willow'));
     const state = petLibraryState();
     expect(state.pets).toEqual(expect.arrayContaining([
@@ -94,7 +94,7 @@ describe('simple compatible pet library', () => {
     expect(() => importPet(packagePet('short', {}, { width: 1280, height: 1760 }))).toThrow('1280×1920');
     const legacy = packagePet('legacy');
     fs.writeFileSync(path.join(legacy, 'pet.json'), JSON.stringify({ id: 'legacy', displayName: 'Legacy', description: '', spriteVersionNumber: 2, spritesheetPath: 'spritesheet.webp' }));
-    expect(() => importPet(legacy)).toThrow('valid CoS Pets pet.json');
+    expect(() => importPet(legacy)).toThrow('valid Jacob Agent Workspace Pets pet.json');
     expect(() => importPet(packagePet('hands', {}, undefined, manifest => { delete manifest.hands['69']; }))).toThrow('frame 69');
     expect(() => importPet(packagePet(BUILTIN_PET_ID))).toThrow('reserved');
   });

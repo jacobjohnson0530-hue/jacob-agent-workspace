@@ -127,7 +127,7 @@ function createWindow(): void {
     ...(process.platform === 'darwin' ? { titleBarStyle: 'hidden' as const, titleBarOverlay: true } : {}),
     // Painted before the renderer loads, so a dark window never flashes white.
     backgroundColor: windowBackgroundForTheme(getConfig().ui.theme, getConfig().ui.appearance),
-    title: 'Chat On Steroids',
+    title: 'Jacob Agent Workspace',
     webPreferences: {
       zoomFactor: UI_BASE_ZOOM,
       preload: path.join(__dirname, '../preload/index.js'),
@@ -296,7 +296,7 @@ function refreshTray(): void {
   const running = connected || offline;
   const label = connected ? 'Connected' : offline ? 'No internet' : 'Not connected';
   tray.setImage(trayIcon(running));
-  tray.setToolTip(`Chat On Steroids — ${label.toLowerCase()}`);
+  tray.setToolTip(`Jacob Agent Workspace — ${label.toLowerCase()}`);
   tray.setContextMenu(
     Menu.buildFromTemplate([
       { label, enabled: false },

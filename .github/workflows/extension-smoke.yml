@@ -1,0 +1,152 @@
+name: Extension smoke
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  chrome-extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate manifest and locales
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const manifest = JSON.parse(fs.readFileSync('extension/manifest.json', 'utf8'));
+          if (manifest.manifest_version !== 3) throw new Error('Expected Manifest V3');
+          const en = JSON.parse(fs.readFileSync('extension/_locales/en/messages.json', 'utf8'));
+          for (const key of ['extension_name','extension_description','extension_action_title']) {
+            if (!en[key]?.message) throw new Error('Missing locale key: ' + key);
+          }
+          const refs = new Set();
+          if (manifest.background?.service_worker) refs.add(manifest.background.service_worker);
+          for (const cs of manifest.content_scripts ?? []) {
+            for (const f of cs.js ?? []) refs.add(f);
+            for (const f of cs.css ?? []) refs.add(f);
+          }
+          if (manifest.action?.default_popup) refs.add(manifest.action.default_popup);
+          for (const f of Object.values(manifest.icons ?? {})) refs.add(f);
+          for (const f of Object.values(manifest.action?.default_icon ?? {})) refs.add(f);
+          for (const f of refs) {
+            if (!fs.existsSync(path.join('extension', f))) throw new Error('Missing manifest file: ' + f);
+          }
+          for (const locale of fs.readdirSync('extension/_locales')) {
+            JSON.parse(fs.readFileSync(path.join('extension/_locales', locale, 'messages.json'), 'utf8'));
+          }
+          console.log('Static extension validation passed');
+          NODE
+
+      - name: Show Chrome version
+        run: google-chrome --version
+
+      - name: Load unpacked extension in Chrome
+        shell: bash
+        run: |
+          set -u
+          PROFILE=/tmp/jaw-chrome-profile
+          LOG=/tmp/jaw-chrome.log
+          EXTENSION="$GITHUB_WORKSPACE/extension"
+          rm -rf "$PROFILE"
+          mkdir -p "$PROFILE"
+
+          xvfb-run -a google-chrome             --user-data-dir="$PROFILE"             --remote-debugging-port=9222             --no-first-run             --no-default-browser-check             --disable-gpu             --disable-dev-shm-usage             --disable-background-networking             --disable-component-update             --disable-extensions-except="$EXTENSION"             --load-extension="$EXTENSION"             about:blank >"$LOG" 2>&1 &
+          CHROME_PID=$!
+
+          sleep 8
+
+          echo "Chrome DevTools targets:"
+          curl -fsS http://127.0.0.1:9222/json/list || true
+          echo
+
+          python3 <<'PY'
+          import json, os, pathlib
+
+          profile = pathlib.Path('/tmp/jaw-chrome-profile')
+          target = os.path.realpath(os.environ['GITHUB_WORKSPACE'] + '/extension')
+
+          candidates = []
+          for p in profile.rglob('*Preferences*'):
+              if p.is_file() and p.stat().st_size < 50_000_000:
+                  candidates.append(p)
+
+          print('Preference candidates:')
+          for p in candidates:
+              print(' -', p)
+
+          matches = []
+
+          def walk(value, trail='root'):
+              if isinstance(value, dict):
+                  raw_path = value.get('path')
+                  if isinstance(raw_path, str):
+                      try:
+                          resolved = os.path.realpath(raw_path)
+                      except Exception:
+                          resolved = raw_path
+                      if resolved == target:
+                          matches.append((trail, value))
+                  for k, v in value.items():
+                      walk(v, trail + '.' + str(k))
+              elif isinstance(value, list):
+                  for i, v in enumerate(value):
+                      walk(v, trail + f'[{i}]')
+
+          for p in candidates:
+              try:
+                  data = json.loads(p.read_text(encoding='utf-8'))
+              except Exception as exc:
+                  print('skip', p, exc)
+                  continue
+              walk(data, str(p))
+
+          print('Unpacked extension matches:', len(matches))
+          for trail, state in matches:
+              print('trail=', trail)
+              print('state=', state.get('state'), 'location=', state.get('location'), 'path=', state.get('path'))
+              manifest = state.get('manifest')
+              if isinstance(manifest, dict):
+                  print('manifest version=', manifest.get('version'), 'name=', manifest.get('name'))
+
+          if not matches:
+              print('Chrome profile top-level files:')
+              for p in sorted(profile.glob('*')):
+                  print(' -', p.name)
+              print('Chrome log:')
+              print(pathlib.Path('/tmp/jaw-chrome.log').read_text(errors='replace'))
+              raise SystemExit('Extension did not appear in Chrome profile preferences')
+
+          if not any(state.get('state', 1) == 1 for _, state in matches):
+              print('Chrome log:')
+              print(pathlib.Path('/tmp/jaw-chrome.log').read_text(errors='replace'))
+              raise SystemExit('Extension appeared but was disabled')
+          PY
+
+          kill "$CHROME_PID" 2>/dev/null || true
+          wait "$CHROME_PID" 2>/dev/null || true
+
+          if grep -Eqi 'failed to load extension|could not load manifest|manifest.*error|invalid value for' "$LOG"; then
+            echo "Chrome reported an extension load error:"
+            cat "$LOG"
+            exit 1
+          fi
+
+          echo "Chrome unpacked-extension smoke passed"
+
+      - name: Package clean extension
+        if: always()
+        shell: bash
+        run: |
+          cd extension
+          zip -qr ../jacob-agent-workspace-companion-2.2.0.zip .
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jacob-agent-workspace-companion-2.2.0
+          path: jacob-agent-workspace-companion-2.2.0.zip
+          if-no-files-found: error

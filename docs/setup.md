@@ -4,19 +4,19 @@
 
 ## Before connecting
 
-Read the [responsible-use notice and provider rules](../README.md#responsible-use-and-provider-rules). CoS is an independent beta, used at your own risk. Its companion observes and automates the ChatGPT browser UI and records conversation content locally; this is not a public ChatGPT automation API. MCP/tunnel access does not establish permission for every automated workflow. Your account's terms, usage limits, safety decisions and workspace rules still apply.
+Read the [responsible-use notice and provider rules](../README.md#responsible-use-and-provider-rules). Jacob Agent Workspace is an independent beta, used at your own risk. Its companion observes and automates the ChatGPT browser UI and records conversation content locally; this is not a public ChatGPT automation API. MCP/tunnel access does not establish permission for every automated workflow. Your account's terms, usage limits, safety decisions and workspace rules still apply.
 
 ## Quick start
 
-1. **Install and open CoS.** Choose the download for your operating system and CPU.
+1. **Install and open Jacob Agent Workspace.** Choose the download for your operating system and CPU.
 2. **Choose what ChatGPT may access.** In **Settings → Workspace**, approve a project folder and review the tool permissions.
 3. **Connect the local tools.** Configure a tunnel in **Settings → Setup**, press **Connect**, then add the **Core** app in ChatGPT under **Plugins → Add → Create MCP App**.
 4. **Load the companion extension.** Press **Open extension folder**. In `chrome://extensions`, enable Developer mode, choose **Load unpacked** and select that folder. Pairing is automatic.
-5. **Start a task.** Choose a project and model in CoS, write your request and send it.
+5. **Start a task.** Choose a project and model in Jacob Agent Workspace, write your request and send it.
 
 Want screen and keyboard control? Enable **Desktop** permissions and connect its separate app. On macOS, also grant Screen Recording and Accessibility in System Settings.
 
-**After an update:** reload the companion extension and refresh the CoS apps in ChatGPT when prompted. These are two separate steps.
+**After an update:** reload the companion extension and refresh the Jacob Agent Workspace apps in ChatGPT when prompted. These are two separate steps.
 
 ## Tunnel setup
 
@@ -24,9 +24,9 @@ Want screen and keyboard control? Enable **Desktop** permissions and connect its
 
 1. Create a tunnel in [Platform → Tunnels](https://platform.openai.com/settings/organization/tunnels), in the same workspace you use in ChatGPT.
 2. Create a **Restricted** [API key](https://platform.openai.com/settings/organization/api-keys) with **Tunnels: Read** and **Tunnels: Use**.
-3. Enter the tunnel ID and key in CoS and press **Connect**.
+3. Enter the tunnel ID and key in Jacob Agent Workspace and press **Connect**.
 4. In ChatGPT, open [Plugins](https://chatgpt.com/plugins), click **Add** at the top right and choose **Create MCP App**. Pick **Tunnel** as the connection, select your tunnel and choose **No authentication**. Older ChatGPT versions instead need Developer mode turned on first (**Settings → Security and login**) and show a **+** button. Review and enable the app's actions.
-5. Name each app exactly as CoS shows it (for example `Chat On Steroids Core`). CoS recognizes its tool calls by that name; a renamed app still works, but its calls are filed under Unattributed activity instead of your chat, which also keeps Goal and Loop from seeing them.
+5. Name each app exactly as Jacob Agent Workspace shows it (for example `Jacob Agent Workspace Core`). Jacob Agent Workspace recognizes its tool calls by that name; a renamed app still works, but its calls are filed under Unattributed activity instead of your chat, which also keeps Goal and Loop from seeing them.
 
 > **No Developer mode switch?** That's expected. Current ChatGPT accounts, including new Plus accounts, create the app from **Plugins → Add → Create MCP App** without it, and file edits and desktop control work as before ([#522](https://github.com/totec448-spec/chat-on-steroids/issues/522)).
 
@@ -34,9 +34,9 @@ Core, Desktop and Plugins are separate connectors. Configure each surface you en
 
 ### Other tunnels
 
-**Cloudflare quick tunnel:** connect in CoS and use the displayed public URL as the MCP server URL in ChatGPT. The random path is a secret and changes on restart.
+**Cloudflare quick tunnel:** connect in Jacob Agent Workspace and use the displayed public URL as the MCP server URL in ChatGPT. The random path is a secret and changes on restart.
 
-**Your own HTTPS tunnel:** forward to the loopback URL shown by CoS and preserve its secret path. Treat the resulting URL like a password.
+**Your own HTTPS tunnel:** forward to the loopback URL shown by Jacob Agent Workspace and preserve its secret path. Treat the resulting URL like a password.
 
 ## Browser bridge port
 
@@ -45,13 +45,13 @@ In **Settings → Browser & history → Browser bridge port**, choose **Auto** (
 order. A fixed choice uses exactly that port. The companion discovers the same supported range.
 
 If the selected port is occupied, the save is rejected and the previous choice and working
-bridge remain active. If a saved port is occupied when CoS starts, the app stays open with the
+bridge remain active. If a saved port is occupied when Jacob Agent Workspace starts, the app stays open with the
 bridge stopped and an error in **Setup**. Choose a free port or Auto in Settings to recover.
 The saved fixed choice never silently falls back to another port. Pairing survives a successful switch.
 
 An effective `CLF_BRIDGE_PORTS` environment override takes precedence over the saved choice.
 The dropdown is disabled and explains the override; unrelated Settings changes remain available.
-Remove the override from the launch environment and restart CoS to use this selector. The existing
+Remove the override from the launch environment and restart Jacob Agent Workspace to use this selector. The existing
 comma-separated override and port `0` remain available for isolated development/tests.
 
 ## Permissions and connectors
@@ -84,16 +84,16 @@ These continuity features do not grant additional quota or access. Do not use ne
 
 ## Troubleshooting
 
-- **Missing or stale tools:** refresh the relevant CoS app in ChatGPT. Reloading the Chrome extension is a separate action.
+- **Missing or stale tools:** refresh the relevant Jacob Agent Workspace app in ChatGPT. Reloading the Chrome extension is a separate action.
 - **Provider usage limit or policy warning:** stop the affected workflow and disable its Goal/Loop automation. Follow the provider's stated reset or support/appeal process. Do not switch accounts, chats, models, connectors or tunnels to evade the restriction. A local retry or reconnection is not evidence that a policy restriction has been lifted. Keep account notices and appeal details private; a GitHub issue cannot resolve an account enforcement decision.
 - **Tunnel rejects the API key or tunnel ID:** check the saved tunnel ID, the selected setup profile, and that its key has Tunnels Read + Use for that tunnel. Extension pairing does not authenticate the tunnel. If Platform offers no matching ChatGPT workspace, retain the exact error for an access investigation; a different tunnel does not establish account eligibility.
 - **ChatGPT blocks a tool for safety:** local permission alone does not prove that ChatGPT accepted or dispatched the call. Inspect the local tool history for the exact request. If no result exists, execution is unconfirmed; do not replay a potentially executed operation or route it through another connector. Keep the task's progress and report the provider's error, selected Chat/Work surface, and app/extension versions without credentials or private content. A plan label alone does not diagnose a provider refusal.
-- **CoS returns `TOOL_DISABLED`:** check Read-only and the named local capability. `CALLER_IDENTITY_REQUIRED` or `WORKER_IDENTITY_LOST` instead concerns exact caller ownership; neither proves that command execution is globally disabled.
-- **Extension version mismatch:** reload the unpacked companion after updating CoS, then reload the ChatGPT page.
+- **Jacob Agent Workspace returns `TOOL_DISABLED`:** check Read-only and the named local capability. `CALLER_IDENTITY_REQUIRED` or `WORKER_IDENTITY_LOST` instead concerns exact caller ownership; neither proves that command execution is globally disabled.
+- **Extension version mismatch:** reload the unpacked companion after updating Jacob Agent Workspace, then reload the ChatGPT page.
 - **Models missing:** use **Reload ChatGPT models**. The picker reflects availability in your signed-in account.
-- **`UNIDENTIFIED_CALLER`:** use that conversation in the paired browser so the extension can prove its request identity. CoS does not guess from the active tab.
+- **`UNIDENTIFIED_CALLER`:** use that conversation in the paired browser so the extension can prove its request identity. Jacob Agent Workspace does not guess from the active tab.
 - **`COMPACTION_IN_PROGRESS`:** let the source chat finish its handoff. Work continues in the replacement conversation.
-- **Linux credential storage unavailable:** unlock GNOME Keyring or KWallet, then restart CoS.
+- **Linux credential storage unavailable:** unlock GNOME Keyring or KWallet, then restart Jacob Agent Workspace.
 - **A chat will not stop:** **Block** revokes local tools for that exact conversation. It does not claim to cancel the provider's generation.
 
 ## Build from source and contribute
