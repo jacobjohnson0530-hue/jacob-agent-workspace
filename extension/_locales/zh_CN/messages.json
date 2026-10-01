@@ -41,6 +41,9 @@
   "content_bootstrap_composer_unavailable": {
     "message": "ChatGPT 始终未提供可用于引导消息的输入框"
   },
+  "content_bootstrap_composer_unavailable_after_model": {
+    "message": "ChatGPT 始终未提供可用于引导消息的输入框"
+  },
   "content_bootstrap_fresh_chat_changed": {
     "message": "发送引导消息前，标记的新聊天发生了变化；未发送任何内容"
   },
