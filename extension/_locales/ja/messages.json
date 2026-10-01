@@ -41,6 +41,9 @@
   "content_bootstrap_composer_unavailable": {
     "message": "ChatGPT が初期メッセージ用の入力欄を利用可能にしませんでした"
   },
+  "content_bootstrap_composer_unavailable_after_model": {
+    "message": "ChatGPT が初期メッセージ用の入力欄を利用可能にしませんでした"
+  },
   "content_bootstrap_fresh_chat_changed": {
     "message": "指定した新しいチャットが初期メッセージ送信前に変わりました。何も送信されていません"
   },
