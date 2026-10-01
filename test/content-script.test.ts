@@ -439,6 +439,52 @@ afterEach(() => {
   live = null;
 });
 
+describe('fresh bootstrap hydration recovery', () => {
+  it('reloads once before redeeming when a marked fresh tab never mounts a composer', async () => {
+    const commandId = '11111111-2222-4333-8444-555555555555';
+    let reloads = 0;
+    let redeems = 0;
+    live = await harness(`https://chatgpt.com/?clf=${commandId}#clf=${commandId}`, {
+      redeem: () => {
+        redeems++;
+        return { ok: true, command: { id: commandId, type: 'worker', text: 'Read test.txt', agent: 'worker-1' } };
+      }
+    }, (document, dom) => {
+      document.querySelector('#composer-form')!.remove();
+      (dom.window as any).CLF_TEST_BOOTSTRAP_RELOAD = () => { reloads++; };
+    });
+    await settle();
+    expect(reloads).toBe(1);
+    expect(redeems).toBe(0);
+    expect(live.sent.filter(message => message.type === 'redeem')).toHaveLength(0);
+  });
+
+  it('does not loop the pre-redeem reload and fails normally if the recovered shell is still blank', async () => {
+    const commandId = '66666666-7777-4888-8999-aaaaaaaaaaaa';
+    let reloads = 0;
+    let redeems = 0;
+    live = await harness(`https://chatgpt.com/?clf=${commandId}#clf=${commandId}`, {
+      redeem: () => {
+        redeems++;
+        return { ok: true, command: { id: commandId, type: 'worker', text: 'Read test.txt', agent: 'worker-1' } };
+      },
+      ack: () => ({ ok: true })
+    }, (document, dom) => {
+      document.querySelector('#composer-form')!.remove();
+      dom.window.sessionStorage.setItem(`clf-bootstrap-reload:${commandId}`, '1');
+      (dom.window as any).CLF_TEST_BOOTSTRAP_RELOAD = () => { reloads++; };
+    });
+    await settle();
+    expect(reloads).toBe(0);
+    expect(redeems).toBe(1);
+    expect(live.sent).toContainEqual(expect.objectContaining({
+      type: 'ack',
+      id: commandId,
+      status: 'failed'
+    }));
+  });
+});
+
 describe('one synchronous page snapshot per observer turn', () => {
   it.each([true, false])('resets a completed idle conversation only through native New Chat (control=%s)', async available => {
     live = await harness(undefined, {}, (document, dom) => {
