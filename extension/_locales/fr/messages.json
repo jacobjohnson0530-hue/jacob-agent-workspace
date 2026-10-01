@@ -41,6 +41,9 @@
   "content_bootstrap_composer_unavailable": {
     "message": "ChatGPT n’a jamais fourni de zone de saisie utilisable pour le message initial"
   },
+  "content_bootstrap_composer_unavailable_after_model": {
+    "message": "ChatGPT n’a jamais fourni de zone de saisie utilisable pour le message initial"
+  },
   "content_bootstrap_fresh_chat_changed": {
     "message": "le nouveau chat désigné a changé avant l’envoi du message initial ; rien n’a été envoyé"
   },
