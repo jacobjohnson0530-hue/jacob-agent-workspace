@@ -41,6 +41,9 @@
   "content_bootstrap_composer_unavailable": {
     "message": "ChatGPT başlangıç için kullanılabilir bir mesaj alanı göstermedi"
   },
+  "content_bootstrap_composer_unavailable_after_model": {
+    "message": "ChatGPT başlangıç için kullanılabilir bir mesaj alanı göstermedi"
+  },
   "content_bootstrap_fresh_chat_changed": {
     "message": "işaretlenen yeni sohbet başlangıç mesajı gönderilmeden önce değişti; hiçbir şey gönderilmedi"
   },
