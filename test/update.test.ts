@@ -56,8 +56,8 @@ const {
 } = await import('../src/main/update.js');
 
 const NEXT = '99.0.0';
-const WINDOWS_ASSET = `Chat-On-Steroids-Setup-${process.arch}.exe`;
-const APPIMAGE_ASSET = `Chat-On-Steroids-Linux-${process.arch}.AppImage`;
+const WINDOWS_ASSET = `Jacob-Agent-Workspace-Setup-${process.arch}.exe`;
+const APPIMAGE_ASSET = `Jacob-Agent-Workspace-Linux-${process.arch}.AppImage`;
 
 const sha256 = (body: string): string => createHash('sha256').update(body).digest('hex');
 
@@ -126,9 +126,9 @@ afterEach(() => {
 
 describe('the file Get update opens for an installation that cannot update itself', () => {
   it('names the exact macOS disk image or Linux package for this machine', () => {
-    expect(manualDownloadName('darwin', 'arm64', undefined, true)).toBe('Chat-On-Steroids-macOS-arm64.dmg');
-    expect(manualDownloadName('darwin', 'x64', undefined, true)).toBe('Chat-On-Steroids-macOS-x64.dmg');
-    expect(manualDownloadName('linux', 'x64', undefined, true)).toBe('Chat-On-Steroids-Linux-x64.deb');
+    expect(manualDownloadName('darwin', 'arm64', undefined, true)).toBe('Jacob-Agent-Workspace-macOS-arm64.dmg');
+    expect(manualDownloadName('darwin', 'x64', undefined, true)).toBe('Jacob-Agent-Workspace-macOS-x64.dmg');
+    expect(manualDownloadName('linux', 'x64', undefined, true)).toBe('Jacob-Agent-Workspace-Linux-x64.deb');
     // Installations that update themselves, a dev tree and an unpublished architecture get none.
     expect(manualDownloadName('linux', 'x64', '/opt/cos.AppImage', true)).toBeNull();
     expect(manualDownloadName('win32', 'x64', undefined, true)).toBeNull();
@@ -136,19 +136,19 @@ describe('the file Get update opens for an installation that cannot update itsel
     expect(manualDownloadName('darwin', 'ia32', undefined, true)).toBeNull();
   });
   it('links that file for the announced version, and the release page otherwise', () => {
-    expect(manualDownloadUrl('2.1.17', 'Chat-On-Steroids-macOS-arm64.dmg'))
-      .toBe('https://github.com/totec448-spec/chat-on-steroids/releases/download/v2.1.17/Chat-On-Steroids-macOS-arm64.dmg');
-    expect(manualDownloadUrl(null, 'Chat-On-Steroids-macOS-arm64.dmg')).toBe('https://github.com/totec448-spec/chat-on-steroids/releases/latest');
-    expect(manualDownloadUrl('2.1.17', null)).toBe('https://github.com/totec448-spec/chat-on-steroids/releases/latest');
-    expect(manualDownloadUrl('../evil', 'x.dmg')).toBe('https://github.com/totec448-spec/chat-on-steroids/releases/latest');
+    expect(manualDownloadUrl('2.2.0', 'Jacob-Agent-Workspace-macOS-arm64.dmg'))
+      .toBe('https://github.com/jacobjohnson0530-hue/jacob-agent-workspace/releases/download/v2.2.0/Jacob-Agent-Workspace-macOS-arm64.dmg');
+    expect(manualDownloadUrl(null, 'Jacob-Agent-Workspace-macOS-arm64.dmg')).toBe('https://github.com/jacobjohnson0530-hue/jacob-agent-workspace/releases/latest');
+    expect(manualDownloadUrl('2.2.0', null)).toBe('https://github.com/jacobjohnson0530-hue/jacob-agent-workspace/releases/latest');
+    expect(manualDownloadUrl('../evil', 'x.dmg')).toBe('https://github.com/jacobjohnson0530-hue/jacob-agent-workspace/releases/latest');
   });
 });
 
 describe('which installations update themselves', () => {
   it('takes the Windows installer and the Linux AppImage, and nothing else', () => {
-    expect(stagedArtifact('win32', 'x64')).toMatchObject({ name: 'Chat-On-Steroids-Setup-x64.exe', kind: 'installer' });
+    expect(stagedArtifact('win32', 'x64')).toMatchObject({ name: 'Jacob-Agent-Workspace-Setup-x64.exe', kind: 'installer' });
     expect(stagedArtifact('linux', 'arm64', '/opt/cos.AppImage')).toMatchObject({
-      name: 'Chat-On-Steroids-Linux-arm64.AppImage',
+      name: 'Jacob-Agent-Workspace-Linux-arm64.AppImage',
       kind: 'appimage',
       target: '/opt/cos.AppImage'
     });
@@ -264,7 +264,7 @@ describe('staging the new version', () => {
   });
 
   it('stages nothing when the release does not publish an artifact for this installation', async () => {
-    github({ checksums: `${sha256('x')}  Chat-On-Steroids-Extension.zip\n` });
+    github({ checksums: `${sha256('x')}  Jacob-Agent-Workspace-Extension.zip\n` });
     await asPlatform('win32', undefined, () => checkForUpdates());
     expect(updateStatus().stage).toBe('failed');
     expect(updateStatus().error).toContain(`publishes no ${WINDOWS_ASSET}`);
@@ -277,7 +277,7 @@ describe('staging the new version', () => {
    * executing out of that path while this runs.
    */
   it('replaces the running AppImage with the staged one', async () => {
-    const live = path.join(userData, 'Chat-On-Steroids.AppImage');
+    const live = path.join(userData, 'Jacob-Agent-Workspace.AppImage');
     writeFileSync(live, 'the old build');
     const { body } = github();
 
@@ -428,7 +428,7 @@ describe('installing on request', () => {
   });
 
   it('relaunches an AppImage install itself, having no installer to ask', async () => {
-    const live = path.join(userData, 'Chat-On-Steroids.AppImage');
+    const live = path.join(userData, 'Jacob-Agent-Workspace.AppImage');
     writeFileSync(live, 'the old build');
     const { body } = github();
 

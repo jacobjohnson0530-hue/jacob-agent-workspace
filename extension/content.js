@@ -10823,6 +10823,34 @@
     }
     if (attempt?.cancelled) return;
 
+    // A fresh ChatGPT tab can occasionally stop at the provider shell before the composer
+    // hydrates. Do not spend the durable command lease on that shell: once redeemed, a reload
+    // would turn an unsubmitted worker/resume into an ambiguous replay. Wait while the command
+    // is still app-owned, then give this exact tab one reload attempt. sessionStorage is scoped
+    // to the tab and survives that reload, so a persistently broken page cannot loop forever.
+    if (fromUrl && !openedConversation && !OPENED_PROJECT_ENTRY) {
+      const preflightCurrent = () => alive && !attempt?.cancelled &&
+        (!attempt || commandAttempt === attempt) && markerId() === id && !CLF_DOM.conversationId();
+      const preflightComposer = await waitForComposer(12_000, preflightCurrent);
+      if (!preflightComposer && preflightCurrent()) {
+        const reloadKey = `clf-bootstrap-reload:${id}`;
+        let alreadyReloaded = false;
+        try { alreadyReloaded = sessionStorage.getItem(reloadKey) === '1'; } catch {}
+        if (!alreadyReloaded) {
+          try { sessionStorage.setItem(reloadKey, '1'); } catch {}
+          if (TEST_MODE && typeof globalThis.CLF_TEST_BOOTSTRAP_RELOAD === 'function') {
+            globalThis.CLF_TEST_BOOTSTRAP_RELOAD();
+          } else {
+            location.reload();
+          }
+          return;
+        }
+      } else if (preflightComposer) {
+        try { sessionStorage.removeItem(`clf-bootstrap-reload:${id}`); } catch {}
+      }
+    }
+    if (attempt?.cancelled) return;
+
     // RUN_ID names this document. It is what makes the command single-owner: a second tab
     // on the same marker is a different document and is refused, while this one's own
     // request is answered.
@@ -10996,7 +11024,7 @@
     if ((boot.model || boot.reasoningEffort) && !(await waitForComposer(12_000, stillOnTarget))) {
       if (await failIfRetargeted()) return;
       return void (await fail(t(
-        'content_bootstrap_composer_unavailable',
+        'content_bootstrap_composer_unavailable_after_model',
         'ChatGPT never re-exposed a usable composer after model selection'
       )));
     }
