@@ -9,6 +9,22 @@ The app and the `extension/` companion are versioned together. **Reload the
 extension after updating the app**. If their bridge protocols are incompatible,
 the app refuses the extension and asks you to reload the matching copy.
 
+## [2.2.0] — Jacob Agent Workspace derivative bootstrap
+
+The first Jacob Agent Workspace version establishes an independent derivative identity while preserving the upstream runtime and Chrome companion feature set.
+
+### Changed
+
+- Renamed the desktop product, MCP connectors, package, release artifacts and user-facing interface to **Jacob Agent Workspace**.
+- Moved update checks and standalone extension recovery to the Jacob Agent Workspace release repository.
+- Kept the Chrome companion feature set intact, including browser observation/control, pairing, sessions, workers, Goal/Loop and Compact & Resume.
+- Kept compatibility-sensitive bridge, storage and environment namespaces stable until explicit migrations are implemented.
+- Documented the upstream MIT relationship, compatibility boundaries and verification gates for the derivative.
+
+### Compatibility
+
+This release is based on upstream Chat On Steroids 2.1.17 behavior. The browser bridge wire identity and selected `CLF_*`, `COS_*`, `cos.*` and persistent storage identifiers intentionally remain compatible with the inherited runtime.
+
 ## [2.1.17] — Workspace and self-updating extension
 
 A feature update. The app gets a workspace next to your chat, pets on your desktop, and an extension that keeps itself up to date. CoS now speaks German and Brazilian Portuguese.

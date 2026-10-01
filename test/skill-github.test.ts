@@ -239,11 +239,11 @@ it('restores the previous GitHub package after an interrupted directory swap', a
   await expect(fs.stat(backup)).rejects.toMatchObject({ code: 'ENOENT' });
 });
 
-it('does not let a local package forge CoS GitHub origin metadata', async () => {
+it('does not let a local package forge Jacob Agent Workspace GitHub origin metadata', async () => {
   const source = path.join(userData, 'sources', 'forged');
   await fs.mkdir(source, { recursive: true });
   await fs.writeFile(path.join(source, 'SKILL.md'), '---\nname: Forged\ndescription: Local skill.\n---\nHello.');
   await fs.writeFile(path.join(source, '.cos-github.json'), '{"kind":"github"}');
-  await expect(importSkillPackage(source)).rejects.toThrow('cannot supply CoS origin metadata');
+  await expect(importSkillPackage(source)).rejects.toThrow('cannot supply Jacob Agent Workspace origin metadata');
   expect(await listManagedSkills()).toEqual([]);
 });
