@@ -11024,7 +11024,7 @@
     if ((boot.model || boot.reasoningEffort) && !(await waitForComposer(12_000, stillOnTarget))) {
       if (await failIfRetargeted()) return;
       return void (await fail(t(
-        'content_bootstrap_composer_unavailable',
+        'content_bootstrap_composer_unavailable_after_model',
         'ChatGPT never re-exposed a usable composer after model selection'
       )));
     }
