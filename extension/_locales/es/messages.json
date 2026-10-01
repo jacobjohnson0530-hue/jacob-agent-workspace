@@ -41,6 +41,9 @@
   "content_bootstrap_composer_unavailable": {
     "message": "ChatGPT nunca mostró un redactor utilizable para el inicio"
   },
+  "content_bootstrap_composer_unavailable_after_model": {
+    "message": "ChatGPT nunca mostró un redactor utilizable para el inicio"
+  },
   "content_bootstrap_fresh_chat_changed": {
     "message": "el chat nuevo marcado cambió antes del envío inicial; no se envió nada"
   },
