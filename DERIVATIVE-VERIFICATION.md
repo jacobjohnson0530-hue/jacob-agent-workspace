@@ -60,15 +60,25 @@ Completed CI gates:
 Remaining local/runtime gates before a public release:
 
 5. ✅ Windows x64 package generation + packaged-runtime smoke (Actions run `36473828817`, artifact `jacob-agent-workspace-windows-x64-smoke`)
-6. ⬜ Windows installer install/start smoke on a real desktop
-7. ⬜ Chrome extension load-unpacked smoke test
-8. ⬜ extension ↔ desktop bridge pairing
-9. ⬜ Core MCP initialize + tools/list + tool call
-10. ⬜ Desktop MCP initialize + browser/desktop smoke
+6. ⚠️ Installed 2.2.0 application launched and served the test chats; exact current-head installer install/readback remains open
+7. ⚠️ Chrome extension load-unpacked and previous reload passed; the latest editor-readiness patch still needs a Chrome reload and live recheck
+8. ✅ extension ↔ desktop bridge pairing in the earlier Worker and Goal/Loop live runs
+9. ✅ Core MCP tool calls in the safe test workspace, including a new read after Compact & Resume
+10. ⚠️ Desktop MCP browser/desktop actions were reported in the resumed chat; repeat the full safe-scope smoke after the current connection and identity recover
 11. ⬜ Plugins MCP initialize + external-plugin discovery smoke
-12. ⬜ session / worker / Compact & Resume smoke test
+12. ✅ session, Worker lifecycle, three-Worker routing, and Compact & Resume smoke; explicit Goal/Loop helper delivery also passed
 
-The derivative bootstrap is now source/build CI-clean. Do not publish a public Jacob Agent Workspace release until the remaining local/runtime gates are exercised.
+The automatic Loop continuation (`afterTurn: false`) failed once at editor readiness. A focused source and regression-test fix is present, but the updated companion has not yet been reloaded and rechecked live. The derivative bootstrap is source/build CI-clean at the prior remote head. Do not publish a public Jacob Agent Workspace release until the remaining local/runtime gates are exercised against the current head.
+
+## Phase 2C — live runtime and current local verification
+
+The dated evidence and limits are in `docs/worklog-2026-10-03-goal-helper-remount.md`. The safe workspace is `C:\Users\jacob\Desktop\jacob-agent-test`; smoke reads used its existing `test.txt` and did not modify sensitive project data.
+
+- The Worker bootstrap, finish/sleep/wake lifecycle, and three concurrent Worker reports passed. Core and Desktop use separate tunnel surfaces.
+- Explicit Goal and Loop helpers each delivered a follow-up into the owning ChatGPT conversation and caused a second Core read. The editor-remount case is covered by positive and foreign-draft regression tests.
+- Compact & Resume moved chat A to B with the same handoff marker; B performed a new Core read. No completed Worker, Goal, or Loop action was replayed.
+- Automatic Loop continuation later failed before insertion with `content_delivery_editor_not_writable`. The current source rechecks layout readiness within the existing 15-second ownership-bound wait. Its positive and permanent-failure regression cases passed; a fresh live pass is still required.
+- On 2026-10-03, local `npm run verify` passed privacy, notices, and typecheck, then recorded 6,334 passed and 10 failed tests. Eight failures were generated PowerShell scripts rejected by the local execution policy. Two timing-sensitive cases passed on isolated rerun. The test launchers now use a process-scoped policy override, consistent with the existing Windows capture verification script; six affected test files passed 132/132 on targeted rerun. Full verification and CI on this updated head remain pending.
 
 <!-- CI trigger marker: Actions enabled for derivative verification -->
 

@@ -98,7 +98,7 @@ Check 'attach:1-2,attach:1-3,attach:2-3,activate,detach:2-3,detach:1-3,detach:1-
     try {
       const file = path.join(directory, 'probe.ps1');
       writeFileSync(file, script);
-      const result = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-File', file],
+      const result = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', file],
         { encoding: 'utf8', windowsHide: true, timeout: 20_000 });
       expect(result.status, result.stderr || result.stdout).toBe(0);
       expect(result.stdout).toContain('focus ownership passed');

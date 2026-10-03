@@ -81,7 +81,7 @@ if(-not [object]::ReferenceEquals((Get-UiRoot 1),$script:root)){throw 'native di
     try {
       const file = path.join(directory, 'probe.ps1');
       writeFileSync(file, script);
-      const result = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-File', file], { encoding: 'utf8', windowsHide: true, timeout: 20_000 });
+      const result = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', file], { encoding: 'utf8', windowsHide: true, timeout: 20_000 });
       expect(result.status, result.stderr || result.stdout).toBe(0);
       expect(result.stdout).toContain('BROWSER_UI_OWNER_OK');
     } finally {
