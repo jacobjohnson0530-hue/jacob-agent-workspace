@@ -13,7 +13,7 @@ async function run(script: string): Promise<string> {
   try {
     const file = path.join(directory, 'test.ps1');
     await writeFile(file, `$ErrorActionPreference='Stop'\nfunction Get-WindowRows { return @() }\n${WINDOWS_APPS_SCRIPT}\n${script}`, 'utf8');
-    const { stdout } = await execute('powershell.exe', ['-NoProfile', '-NonInteractive', '-File', file], {
+    const { stdout } = await execute('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', file], {
       windowsHide: true, timeout: 15_000, maxBuffer: 32_768
     });
     return stdout.trim();

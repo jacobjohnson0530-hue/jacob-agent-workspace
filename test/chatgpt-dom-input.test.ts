@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const source = readFileSync(new URL('../extension/chatgpt-dom.js', import.meta.url), 'utf8');
 interface DomApi {
+  composer(): HTMLElement | null;
   insertPrompt(text: string, mode?: boolean | 'append', failure?: (reason: string) => void): boolean;
   enterProject(entry: { id: string; sourceConversationId: string }, current?: () => boolean): Promise<boolean>;
   composerActions(): { host: HTMLElement; before: HTMLElement | null } | null;
@@ -41,6 +42,31 @@ beforeEach(() => {
   button = document.querySelector('[data-testid="send-button"]')!;
 });
 afterEach(() => { dom.window.close(); vi.useRealTimers(); });
+
+describe('current native composer discovery', () => {
+  it('recognizes the current data-thread-find-composer shell without the legacy prompt id', () => {
+    box.removeAttribute('id');
+    document.querySelector('form')!.setAttribute('data-thread-find-composer', 'true');
+    box.setAttribute('role', 'textbox');
+    expect(api.composer()).toBe(box);
+  });
+
+  it('fails closed when more than one current composer shell is present', () => {
+    box.removeAttribute('id');
+    const form = document.querySelector('form')!;
+    form.setAttribute('data-thread-find-composer', 'true');
+    box.setAttribute('role', 'textbox');
+    const duplicateForm = document.createElement('form');
+    duplicateForm.setAttribute('data-thread-find-composer', 'true');
+    const duplicate = document.createElement('div');
+    duplicate.setAttribute('contenteditable', 'true');
+    duplicate.setAttribute('role', 'textbox');
+    duplicateForm.append(duplicate);
+    document.body.append(duplicateForm);
+    expect(api.composer()).toBeNull();
+  });
+});
+
 function user(text: string) {
   const section = document.createElement('section');
   section.setAttribute('data-testid', 'conversation-turn-1');
