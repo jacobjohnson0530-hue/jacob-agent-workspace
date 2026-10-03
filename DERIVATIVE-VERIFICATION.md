@@ -59,16 +59,16 @@ Completed CI gates:
 
 Remaining local/runtime gates before a public release:
 
-5. ✅ Windows x64 package generation + packaged-runtime smoke (Actions run `36473828817`, artifact `jacob-agent-workspace-windows-x64-smoke`)
-6. ⚠️ Installed 2.2.0 application launched and served the test chats; exact current-head installer install/readback remains open
-7. ⚠️ Chrome extension load-unpacked and previous reload passed; the latest editor-readiness patch still needs a Chrome reload and live recheck
-8. ✅ extension ↔ desktop bridge pairing in the earlier Worker and Goal/Loop live runs
-9. ✅ Core MCP tool calls in the safe test workspace, including a new read after Compact & Resume
-10. ⚠️ Desktop MCP browser/desktop actions were reported in the resumed chat; repeat the full safe-scope smoke after the current connection and identity recover
-11. ⬜ Plugins MCP initialize + external-plugin discovery smoke
-12. ✅ session, Worker lifecycle, three-Worker routing, and Compact & Resume smoke; explicit Goal/Loop helper delivery also passed
+5. ✅ Windows x64 package generation + packaged-runtime smoke (Actions run `36473828817`, plus a fresh current-head local rebuild)
+6. ⚠️ Installed 2.2.0 application launched and served the test chats; exact current-head NSIS installer install/readback remains open
+7. ✅ Chrome extension load-unpacked, current helper-readiness deployment, reload, and live recheck
+8. ✅ extension ↔ desktop bridge pairing in Worker, Goal/Loop, Compact/Resume, and final runtime verification
+9. ✅ Core MCP tool calls in the disposable test workspace, including fresh reads after Compact & Resume and automatic Loop continuation
+10. ✅ Desktop MCP safe-scope smoke after identity recovery: window state, browser state, navigation, click, typing, keyboard, and scroll
+11. ✅ Plugins MCP surface initialization: a dedicated Plugins tunnel is connected in ChatGPT and truthfully publishes an empty tool catalog when no external MCP integrations are enabled
+12. ✅ session, Worker lifecycle, three-Worker routing, Compact & Resume, explicit Goal/Loop, and automatic Loop `afterTurn: false` live smoke
 
-The automatic Loop continuation (`afterTurn: false`) failed once at editor readiness. A focused source and regression-test fix is present, but the updated companion has not yet been reloaded and rechecked live. Source commit `c017096` passed the three-platform CI run `37123484602`. Do not publish a public Jacob Agent Workspace release until the remaining local/runtime gates are exercised against the current head.
+The helper editor-readiness regression is now live-verified. Source commit `c017096` passed three-platform CI run `37123484602`; documentation head `efc719d` passed three-platform CI run `37124153683`. The only remaining install-specific release gate is an exact current-head NSIS install/readback. Keep the PR Draft and do not publish a public release until that gate is intentionally exercised.
 
 ## Phase 2C — live runtime and current local verification
 
@@ -77,8 +77,19 @@ The dated evidence and limits are in `docs/worklog-2026-10-03-goal-helper-remoun
 - The Worker bootstrap, finish/sleep/wake lifecycle, and three concurrent Worker reports passed. Core and Desktop use separate tunnel surfaces.
 - Explicit Goal and Loop helpers each delivered a follow-up into the owning ChatGPT conversation and caused a second Core read. The editor-remount case is covered by positive and foreign-draft regression tests.
 - Compact & Resume moved chat A to B with the same handoff marker; B performed a new Core read. No completed Worker, Goal, or Loop action was replayed.
-- Automatic Loop continuation later failed before insertion with `content_delivery_editor_not_writable`. The current source rechecks layout readiness within the existing 15-second ownership-bound wait. Its positive and permanent-failure regression cases passed; a fresh live pass is still required.
+- Automatic Loop continuation initially failed before insertion with `content_delivery_editor_not_writable`. The current source rechecks layout readiness within the existing 15-second ownership-bound wait. Its positive and permanent-failure regression cases passed, and the updated companion subsequently completed the automatic `afterTurn: false` live flow with repeated fresh Core reads before Loop was paused.
 - On 2026-10-03, local `npm run verify` passed privacy, notices, and typecheck, then recorded 6,334 passed and 10 failed tests. Eight failures were generated PowerShell scripts rejected by the local execution policy. Two timing-sensitive cases passed on isolated rerun. The test launchers now use a process-scoped policy override, consistent with the existing Windows capture verification script; six affected test files passed 132/132 on targeted rerun. GitHub Actions run `37123484602` then passed the full Windows x64, macOS arm64, and Linux x64 jobs on source commit `c017096`.
+
+## Phase 2D — final runtime and package hardening
+
+The final 2026-10-04 evidence is recorded in `docs/worklog-2026-10-04-release-hardening.md`.
+
+- Compact/Resume caller identity recovered without enabling unattributed calls; the resumed conversation completed a new Core read and did not replay completed work.
+- A fresh Desktop smoke used only disposable fixtures in the approved test root and removed them afterward.
+- Automatic Loop `afterTurn: false` delivered multiple helper continuations into the same executor chat; each continuation triggered a fresh Core read, then automation was paused.
+- The separately tokenized Plugins connector is installed and connected in ChatGPT. JAW reports zero published plugin tools because no external MCP integrations are currently enabled; that empty catalog is the expected fresh state.
+- A current-head Windows x64 rebuild passed packaged native-runtime smoke. The rebuilt installer is `170315296` bytes with SHA-256 `D541F64517ADD62F70D00637FE99FCE605B4E114F0E96EF95758B2AD359794A8`; packaged and source `extension/content.js` both hash to `CBFB429D7E84C49612F731249F9F4E9E9047AF49D1F660DAE9ED04E515370432`.
+- A local broad verification run recorded **6,340 passed, 48 skipped, 3 failed** under full parallel load. The three failures were timing-sensitive session, renderer-state, and PowerShell pipeline cases. Each exact case passed immediately in isolation, and the three complete affected files then passed serially with **355 passed, 6 skipped**. The separately serialized `computer.test.ts` + `mcp-shutdown.test.ts` phase passed **26/26**. Current-head three-platform CI remains green.
 
 <!-- CI trigger marker: Actions enabled for derivative verification -->
 
