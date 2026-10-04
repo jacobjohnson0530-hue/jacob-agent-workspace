@@ -439,6 +439,52 @@ afterEach(() => {
   live = null;
 });
 
+describe('fresh bootstrap hydration recovery', () => {
+  it('reloads once before redeeming when a marked fresh tab never mounts a composer', async () => {
+    const commandId = '11111111-2222-4333-8444-555555555555';
+    let reloads = 0;
+    let redeems = 0;
+    live = await harness(`https://chatgpt.com/?clf=${commandId}#clf=${commandId}`, {
+      redeem: () => {
+        redeems++;
+        return { ok: true, command: { id: commandId, type: 'worker', text: 'Read test.txt', agent: 'worker-1' } };
+      }
+    }, (document, dom) => {
+      document.querySelector('#composer-form')!.remove();
+      (dom.window as any).CLF_TEST_BOOTSTRAP_RELOAD = () => { reloads++; };
+    });
+    await settle();
+    expect(reloads).toBe(1);
+    expect(redeems).toBe(0);
+    expect(live.sent.filter(message => message.type === 'redeem')).toHaveLength(0);
+  });
+
+  it('does not loop the pre-redeem reload and fails normally if the recovered shell is still blank', async () => {
+    const commandId = '66666666-7777-4888-8999-aaaaaaaaaaaa';
+    let reloads = 0;
+    let redeems = 0;
+    live = await harness(`https://chatgpt.com/?clf=${commandId}#clf=${commandId}`, {
+      redeem: () => {
+        redeems++;
+        return { ok: true, command: { id: commandId, type: 'worker', text: 'Read test.txt', agent: 'worker-1' } };
+      },
+      ack: () => ({ ok: true })
+    }, (document, dom) => {
+      document.querySelector('#composer-form')!.remove();
+      dom.window.sessionStorage.setItem(`clf-bootstrap-reload:${commandId}`, '1');
+      (dom.window as any).CLF_TEST_BOOTSTRAP_RELOAD = () => { reloads++; };
+    });
+    await settle();
+    expect(reloads).toBe(0);
+    expect(redeems).toBe(1);
+    expect(live.sent).toContainEqual(expect.objectContaining({
+      type: 'ack',
+      id: commandId,
+      status: 'failed'
+    }));
+  });
+});
+
 describe('one synchronous page snapshot per observer turn', () => {
   it.each([true, false])('resets a completed idle conversation only through native New Chat (control=%s)', async available => {
     live = await harness(undefined, {}, (document, dom) => {
@@ -883,6 +929,46 @@ describe('desktop input delivery and helper ownership', () => {
     expect(live.sent.filter(message => message.ack)).toHaveLength(1);
   });
 
+  it.each([true, false])('rechecks helper composer layout readiness after picker close without a DOM mutation (restores=%s)', async restores => {
+    live = await harness(`https://chatgpt.com/c/${chatA}`, {
+      desktop_input: message => ({ ok: true, data: message.authorize || message.ack || message.fail
+        ? { ok: true } : { input: claimed({ purpose: 'decision', model: 'gpt-5.6-sol', reasoningEffort: 'high' }) } })
+    });
+    const box = live.document.querySelector('#prompt-textarea')!;
+    let laidOut = true;
+    Object.defineProperty(box, 'getClientRects', {
+      configurable: true,
+      value: () => laidOut ? [{ width: 400, height: 60 }] : []
+    });
+    (live.window as any).CLF_DOM.selectModelSettings = async () => {
+      laidOut = false;
+      if (restores) globalThis.setTimeout(() => { laidOut = true; }, 40);
+      return true;
+    };
+    const nativeTimeout = live.window.setTimeout;
+    const nativeInterval = live.window.setInterval;
+    live.window.setTimeout = ((fn: () => void, ms?: number) =>
+      ms === 15000 ? globalThis.setTimeout(fn, 2000) : nativeTimeout(fn, ms)) as typeof live.window.setTimeout;
+    live.window.setInterval = ((fn: () => void, ms?: number) =>
+      globalThis.setInterval(fn, ms)) as unknown as typeof live.window.setInterval;
+    const send = vi.fn(() => {
+      userTurn(live!.document, 'layout-ready-helper-user', text, { sent: false });
+      box.textContent = '';
+    });
+    live.document.querySelector('[data-testid="send-button"]')!.addEventListener('click', send);
+
+    try {
+      const result = await live.runtimeMessage({ type: 'clf-desktop-input', id: inputId, conversationId: chatA });
+      expect(result, JSON.stringify(live.sent.filter(message => message.fail))).toEqual({ ok: restores });
+      expect(send).toHaveBeenCalledTimes(restores ? 1 : 0);
+      if (restores) expect(live.sent.filter(message => message.fail)).toEqual([]);
+      else expect(live.sent.filter(message => message.fail).at(-1)?.error).toMatch(/editor did not become writable/);
+    } finally {
+      live.window.setTimeout = nativeTimeout;
+      live.window.setInterval = nativeInterval;
+    }
+  });
+
   it('confirms an empty temporary helper chat from the page-model stamp alone', async () => {
     // 2026-09-26: the newer shell draws the temporary toggle without the `#chat-temp-checked`
     // sprite, so only fiber.js can prove the mode — and nothing scanned a page with no
@@ -920,6 +1006,50 @@ describe('desktop input delivery and helper ownership', () => {
     })]);
     expect(live.sent.some(message => message.authorize || message.ack)).toBe(false);
   });
+
+  it.each(['empty replacement', 'foreign replacement'] as const)(
+    'reacquires one remounted helper editor without overwriting a %s',
+    async kind => {
+      live = await harness(`https://chatgpt.com/c/${chatA}`, {
+        desktop_input: message => ({ ok: true, data: message.authorize || message.ack || message.fail
+          ? { ok: true } : { input: claimed({ purpose: 'decision' }) } })
+      }, () => undefined, false, true);
+      const nativeEdit = live.document.execCommand;
+      let replaced = false;
+      live.document.execCommand = (command, ui, value) => {
+        const accepted = nativeEdit(command, ui, value);
+        if (accepted && command === 'insertHTML' && !replaced) {
+          replaced = true;
+          live!.window.queueMicrotask(() => {
+            const current = live!.document.querySelector('#prompt-textarea')!;
+            const replacement = current.cloneNode(false) as HTMLElement;
+            if (kind === 'foreign replacement') replacement.textContent = 'My independent draft';
+            current.replaceWith(replacement);
+          });
+        }
+        return accepted;
+      };
+      const sends = watchSend(live.document);
+      live.document.querySelector('[data-testid="send-button"]')!.addEventListener('click', () => {
+        userTurn(live!.document, 'remount-helper-user', text, { sent: false });
+        live!.document.querySelector('#prompt-textarea')!.textContent = '';
+      });
+
+      const result = await live.runtimeMessage({ type: 'clf-desktop-input', id: inputId, conversationId: chatA });
+      await settle();
+
+      if (kind === 'empty replacement') {
+        expect(result).toEqual({ ok: true });
+        expect(sends()).toBe(1);
+        expect(live.sent.filter(message => message.fail)).toEqual([]);
+      } else {
+        expect(result).toEqual({ ok: false });
+        expect(sends()).toBe(0);
+        expect(live.document.querySelector('#prompt-textarea')!.textContent).toBe('My independent draft');
+        expect(live.sent.filter(message => message.fail).at(-1)?.error).toMatch(/draft was preserved/);
+      }
+    }
+  );
 
   it('retains the temporary decision when composer acceptance precedes the mounted user receipt', async () => {
     const canonical = '{"action":"continue","reply":"late mounted plan"}';

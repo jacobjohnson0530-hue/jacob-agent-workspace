@@ -30,13 +30,13 @@ $enter=[CosWindowsKeys]::ResolveForLayout(@('Return'),[IntPtr]1,$layout)
 $physical=[CosWindowsKeys]::ResolveForLayout(@('Shift_R','z'),[IntPtr]2,$layout)
 $keys=[CosWindowsKeys]::ResolveForLayout(@('KP_0','F24'),[IntPtr]2,$layout)
 $failures=0
-foreach ($name in @('imaginary','☃')) {
+foreach ($name in @('imaginary',[char]0x2603)) {
   try { [CosWindowsKeys]::ResolveForLayout(@($name),[IntPtr]1,$layout); throw 'Accepted unsupported key' }
   catch { if ($_.Exception.GetBaseException().Message -notmatch '^BAD_KEY:') { throw }; $failures++ }
 }
 @{us=@($us);german=@($german);altgr=@($altgr);numpad=@($numpad);enter=@($enter);physical=@($physical);keys=@($keys);failures=$failures} | ConvertTo-Json -Compress
 `, 'utf8');
-      const { stdout } = await promisify(execFile)('powershell.exe', ['-NoProfile', '-NonInteractive', '-File', file], {
+      const { stdout } = await promisify(execFile)('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', file], {
         windowsHide: true, timeout: 15_000, maxBuffer: 32_768
       });
       const result = JSON.parse(stdout.trim());

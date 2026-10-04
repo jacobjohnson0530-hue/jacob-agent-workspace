@@ -1614,8 +1614,10 @@ var CLF_DOM = (() => {
     return safe(() => {
       const classic = document.querySelector('#prompt-textarea');
       if (classic) return classic;
-      const candidates = [...document.querySelectorAll('form[data-chatgpt-composer] [contenteditable="true"][role="textbox"]')]
-        .filter(node => !node.closest(`${OWN_SURFACES},[data-turn-key],.markdown,[hidden],[aria-hidden="true"],[inert]`));
+      const candidates = [...document.querySelectorAll(
+        'form[data-chatgpt-composer] [contenteditable="true"][role="textbox"], ' +
+        'form[data-thread-find-composer] [contenteditable="true"][role="textbox"]'
+      )].filter(node => !node.closest(`${OWN_SURFACES},[data-turn-key],.markdown,[hidden],[aria-hidden="true"],[inert]`));
       return candidates.length === 1 ? candidates[0] : null;
     }, null);
   }

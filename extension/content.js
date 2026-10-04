@@ -10823,6 +10823,34 @@
     }
     if (attempt?.cancelled) return;
 
+    // A fresh ChatGPT tab can occasionally stop at the provider shell before the composer
+    // hydrates. Do not spend the durable command lease on that shell: once redeemed, a reload
+    // would turn an unsubmitted worker/resume into an ambiguous replay. Wait while the command
+    // is still app-owned, then give this exact tab one reload attempt. sessionStorage is scoped
+    // to the tab and survives that reload, so a persistently broken page cannot loop forever.
+    if (fromUrl && !openedConversation && !OPENED_PROJECT_ENTRY) {
+      const preflightCurrent = () => alive && !attempt?.cancelled &&
+        (!attempt || commandAttempt === attempt) && markerId() === id && !CLF_DOM.conversationId();
+      const preflightComposer = await waitForComposer(12_000, preflightCurrent);
+      if (!preflightComposer && preflightCurrent()) {
+        const reloadKey = `clf-bootstrap-reload:${id}`;
+        let alreadyReloaded = false;
+        try { alreadyReloaded = sessionStorage.getItem(reloadKey) === '1'; } catch {}
+        if (!alreadyReloaded) {
+          try { sessionStorage.setItem(reloadKey, '1'); } catch {}
+          if (TEST_MODE && typeof globalThis.CLF_TEST_BOOTSTRAP_RELOAD === 'function') {
+            globalThis.CLF_TEST_BOOTSTRAP_RELOAD();
+          } else {
+            location.reload();
+          }
+          return;
+        }
+      } else if (preflightComposer) {
+        try { sessionStorage.removeItem(`clf-bootstrap-reload:${id}`); } catch {}
+      }
+    }
+    if (attempt?.cancelled) return;
+
     // RUN_ID names this document. It is what makes the command single-owner: a second tab
     // on the same marker is a different document and is refused, while this one's own
     // request is answered.
@@ -10996,7 +11024,7 @@
     if ((boot.model || boot.reasoningEffort) && !(await waitForComposer(12_000, stillOnTarget))) {
       if (await failIfRetargeted()) return;
       return void (await fail(t(
-        'content_bootstrap_composer_unavailable',
+        'content_bootstrap_composer_unavailable_after_model',
         'ChatGPT never re-exposed a usable composer after model selection'
       )));
     }
@@ -11825,7 +11853,11 @@
       );
       // Native picker closure can precede re-enabling the same editor. Wait before
       // its one insertion; a disabled editing host is not a rejected helper prompt.
-      if (!await waitPageView(writableComposer, () => onTarget() && !CLF_DOM.generating(), 15000)) return fail(t(
+      // Picker exit can restore the same editor's layout box without changing DOM attributes
+      // or children. MutationObserver alone then never re-runs composerVisible(), even though
+      // getClientRects() becomes non-empty a frame later. Keep the existing 15 s fail-closed
+      // boundary, but recheck layout readiness periodically while this exact target stays owned.
+      if (!await waitPageView(writableComposer, () => onTarget() && !CLF_DOM.generating(), 15000, 250)) return fail(t(
         'content_delivery_editor_not_writable',
         'The ChatGPT editor did not become writable before sending.'
       ));
@@ -11846,6 +11878,7 @@
           'ChatGPT did not accept the text$1',
           insertionFailure ? ` (${insertionFailure})` : ''
         ));
+      const preparedText = sendText(input.text);
       const sendingTarget = submittedSendLifetime(target, forEpoch);
       draft = CLF_DOM.captureComposerDraft(input.text, () => sendAttempted ? sendingTarget() : onTarget());
       const files = [];
@@ -11873,7 +11906,35 @@
         'Attachment upload was not confirmed. Check the unsent draft and any file error in ChatGPT before trying again.'
       ));
       await Promise.resolve();
-      if (!onTarget() || !draft.current() || sendText(CLF_DOM.composer()?.textContent) !== sendText(input.text)) return fail(t(
+      // The current thread composer can remount once after a native edit even though
+      // insertPrompt() verified the exact editor synchronously. Reacquire only before
+      // Send authorization, only for attachment-free delivery, and only when the new
+      // editor is empty or still contains this exact app-owned prompt. A different
+      // draft, attachment, navigation, generation, or a second remount still fails
+      // closed. This keeps user typing protected while allowing React's own editor
+      // replacement to settle without stranding Goal/Loop follow-up delivery.
+      if ((!draft.current() || sendText(CLF_DOM.composer()?.textContent) !== preparedText) &&
+          !(input.images || []).length && !(input.attachments || []).length &&
+          onTarget() && !CLF_DOM.generating() && !CLF_DOM.hasComposerAttachments()) {
+        const replacement = CLF_DOM.composer();
+        const replacementText = sendText(replacement?.textContent);
+        if (replacement && CLF_DOM.composerVisible() && CLF_DOM.composerWritable() &&
+            (replacementText === '' || replacementText === preparedText)) {
+          draft.dispose();
+          if (replacementText === '') {
+            let retryFailure = '';
+            if (!CLF_DOM.insertPrompt(input.text, ownsFreshPage(), reason => { retryFailure = reason; }))
+              return fail(t(
+                'content_delivery_text_not_accepted',
+                'ChatGPT did not accept the text$1',
+                retryFailure ? ` (${retryFailure})` : ''
+              ));
+          }
+          draft = CLF_DOM.captureComposerDraft(input.text, () => sendAttempted ? sendingTarget() : onTarget());
+          await Promise.resolve();
+        }
+      }
+      if (!onTarget() || !draft.current() || sendText(CLF_DOM.composer()?.textContent) !== preparedText) return fail(t(
         'content_delivery_draft_preserved',
         'The composer changed; your draft was preserved'
       ));

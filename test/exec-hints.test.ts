@@ -1052,7 +1052,7 @@ describe('repairing a bash-style escaped quote', () => {
 
     const argv = (commandLine: string): string[] => {
       writeFileSync(driver, `${commandLine}\n`, 'utf8');
-      return execFileSync('powershell.exe', ['-NoProfile', '-File', driver], { encoding: 'utf8' })
+      return execFileSync('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', driver], { encoding: 'utf8' })
         .split(/\r?\n/)
         .filter((line) => line !== '');
     };
@@ -1061,7 +1061,7 @@ describe('repairing a bash-style escaped quote', () => {
     // Win32 command line and its CommandLineToArgvW round trip, which is what ripgrep and every
     // other program here goes through; a .ps1 called in-process receives .NET strings directly
     // and would answer a question nobody asked.
-    const exe = `& 'powershell.exe' -NoProfile -File '${probe}'`;
+    const exe = `& 'powershell.exe' -NoProfile -ExecutionPolicy Bypass -File '${probe}'`;
     const call = `${exe} "state === \\"starting" second`;
     const repaired = repairPowerShellQuoting(call, 'powershell');
     expect(repaired.cmd).toBe(`${exe} 'state === \\"starting' second`);

@@ -27,7 +27,7 @@ try {
 }
 Write-Output 'CAPTURE_RUNTIME_VERIFIED'
 `, 'utf8');
-      const { stdout } = await execute('powershell.exe', ['-NoProfile', '-NonInteractive', '-File', script], {
+      const { stdout } = await execute('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', script], {
         windowsHide: true,
         timeout: 15_000,
         maxBuffer: 32_768
